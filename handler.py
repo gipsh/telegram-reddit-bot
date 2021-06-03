@@ -56,7 +56,7 @@ def webhook(event, context):
 
         logger.info(update.message)
         if text == '/start':
-            text = """Hello, human! I am an carlo killer bot, send me a reddit post i will sent you the video back.
+            text = """Hello, human! I am Carlos the killer bot, send me a reddit post i will sent you the video back.
             You can take a look at my source code here: https://github.com/gipsh/telegram-reddit-bot.
             Enjoy!"""
 
