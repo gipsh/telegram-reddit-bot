@@ -1,0 +1,6 @@
+{
+    "telegram_token": "{your-telegram-token}",
+    "sqs_queue": "arn:aws:sqs:{region}:{account}:BotTelegramRedditQueue",
+    "sqs_queue_name": "BotTelegramRedditQueue",
+    "s3_bucket": "reddit-video-upload-bucket"
+}
