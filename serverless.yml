@@ -1,0 +1,55 @@
+service: serverless-telegram-ytd-bot
+
+custom:
+  config: ${file(config.json)}
+
+provider:
+  name: aws
+  runtime: python3.8
+  environment:
+    TELEGRAM_TOKEN: ${self:custom.config.telegram_token} 
+    SQS_QUEUE: ${self:custom.config.sqs_queue}
+    SQS_QUEUE_NAME: ${self:custom.config.sqs_queue_name} 
+    S3_BUCKET: ${self:custom.config.s3_bucket}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+       - sqs:GetQueueUrl	
+       - sqs:ListQueues
+       - sqs:SendMessage
+       - sqs:GetQueueAttributes
+       - sqs:ReceiveMessage
+      Resource: ${self:custom.config.sqs_queue}
+    - Effect: "Allow"
+      Action:
+       - s3:*
+      Resource: "*"
+    
+functions:
+  webhook:
+    handler: handler.webhook
+    events:
+      - http: POST /
+
+  set_webhook:
+    handler: handler.set_webhook
+    events:
+      - http: POST /set_webhook
+  
+  download_worker:
+    handler: handler.download_worker
+    timeout: 30
+    events:
+      - sqs: ${self:custom.config.sqs_queue}
+    layers:
+      - {Ref: FfmpegLambdaLayer}
+
+
+layers:
+  ffmpeg:
+    path: layer
+
+plugins:
+  - serverless-python-requirements
+ 
+
