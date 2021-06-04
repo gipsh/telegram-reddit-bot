@@ -60,11 +60,14 @@ def webhook(event, context):
             You can take a look at my source code here: https://github.com/gipsh/telegram-reddit-bot.
             Enjoy!"""
 
+            bot.sendMessage(chat_id=chat_id, text=text)
+
+            return OK_RESPONSE
+
+
         if is_reddit(text):
             # send to queue
             sqs = boto3.client("sqs", region_name=os.getenv('AWS_REGION'))
-
-            logging.info("queue name {}".format(os.getenv('SQS_QUEUE_NAME')))
 
             response = sqs.get_queue_url(
                          QueueName=os.getenv('SQS_QUEUE_NAME'),
@@ -150,18 +153,24 @@ def download_worker(event, context):
                 download=True 
             )
 
+        logger.info(result) 
+        
         output = '/tmp/{}.{}'.format(result['id'], result['ext'])
 
         dest = 'reddit/{}.{}'.format(result['id'], result['ext'])
 
         s3 = boto3.client('s3')
+
+        # upload the file
         try:
             response = s3.upload_file(output, os.getenv('S3_BUCKET'), dest,
-                    ExtraArgs={'Metadata': {'url': d['url']}} )
+                    ExtraArgs={'Metadata': {'url': d['url'],
+                                            'name': "{} {}".format(d['first_name'], d['last_name']),
+                                            'title': result['title'] }} )
         except ClientError as e:
-
             logger.error(e)
 
+        # once upladed get the pre signed url
         response = s3.generate_presigned_url('get_object',
                         Params={'Bucket': os.getenv('S3_BUCKET'),
                                 'Key': dest},
